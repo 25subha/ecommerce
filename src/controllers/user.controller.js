@@ -1,4 +1,4 @@
-import { User } from "../models/user.model";
+import { User } from "../models/user.model.js";
 import bcryptjs from "bcryptjs"
 
 
@@ -17,13 +17,16 @@ const creatUser =async (req, res) => {
         if (exisitedUser) {
             if (exisitedUser.userName === userName) {
                 console.log("this userName alrady exists")
+                return res.status(400).json({message: "user userName alredy existes"})
             }
             if (exisitedUser.email === email ) {
                 console.log("this email alredy existes")
+                return res.status(400).json({message: "user email alredy existes"})
+
             }
         }
     
-        const hashPassword =await bcryptjs.hash(password,10)
+        const hashPassword =await bcryptjs.hash(password, 10)
     
         const user = await User.create({
             userName: userName.toLowerCase(),
@@ -35,11 +38,12 @@ const creatUser =async (req, res) => {
         if(!user) {
             console.log(500, "someting went wrong while registering user")
         }
-
-        res.status(201)
+        return res.status(201)
         .json({user: user,
-            message: "user created sucessfully"
-        })
+            message: "user created sucessfully",  
+        }
+    )
+       
     } catch (error) {
         res.status(500).json({message: error.message})
     }
@@ -61,17 +65,17 @@ const loginUser = async (req, res) => {
  
      if(!email) {
          console.log("email is required")
+         return res.status(400).json({message: "email is required"})
      }
     
      const user = await User.findOne({email})
- 
      const ispasswordCorrect = await bcryptjs.compare(password, user.password)
  
-     if(!user || !ispasswordCorrect) {
-         return req.status(400).json({message: "invalid email or password"})
+     if(!(user || ispasswordCorrect)) {
+         return res.status(400).json({message: "invalid email or password"})
      } 
- 
-     res.status(200)
+     return res
+     .status(200)
      .json({
          message: "user logged in successfully",
          user: {
@@ -87,34 +91,43 @@ const loginUser = async (req, res) => {
 
    }
  }
-const changedPassword =async (req, res) => {
+const changedPassword = async (req, res) => {
     try {
+        const {email, oldPassword, newPassword } = req.body;
 
-        const user = await User.findOne({password})
-        const {oldPassword, newPassword} = req.body
-
-        const isPasswordCorrect = await bcryptjs.compare(oldPassword, user.password)
-
-        if (!isPasswordCorrect) {
-            return res.status(400).res.json({message: "invalid old password"})
+        if (!email || !oldPassword || !newPassword ) {
+           return res.status(400).json({message: "this fild are required: email, oldPassword, newPassword"})
         }
 
-        user.password = newPassword
-        await user.save({validateBeforeSave: false})
+        const user = await User.findOne({email});
+        if(!user) {
+           return res.status(404).json({message: "something went wrong while user is not found"})
+        }
 
-        res.status(200).json({message: "password changed sucessfully"})
+        const ispasswordcorrect = await bcryptjs.compare(oldPassword, user.password);
+
+        if (!ispasswordcorrect) {
+           return res.status(400).json({message: "invalid old password", password:  user.password})
+        }
+
+         user.password = newPassword
+
+        await user.save({ validateBeforeSave: false })
+       return res.status(200).json({message: "password changed sucessfully"})
     } catch (error) {
-        res.status(500).json({message: error.message})
+       return res.status(500).json({message: error.message})
 
     }
 }
 
 const updateUser = async(req, res) => {
    try {
-     const {userName, email, fullName} = req.body
+    //  const { userId } = req.params;
+     const {userName, email, fullName} = req.body;
  
      if ([userName,email, fullName].some((fild) => !fild?.trim() === "")) {
          console.log("all filds are required")
+         return res.status(400).json({message: "all filds are required"})
      }
  
      const user = await User.findByIdAndUpdate(req.params?._id, {

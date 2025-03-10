@@ -1,1 +1,1 @@
-export const DB_NAME = "ecommerceWeb"
+export const DB_NAME = "ecommerce"

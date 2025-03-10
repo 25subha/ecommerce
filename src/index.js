@@ -1,13 +1,24 @@
-import express from "express";
+import express, { json } from "express";
 import dotenv from "dotenv"
 import mongoose from "mongoose";
 import { DB_NAME } from "./constants.js";
+import userRouter from "./routs/user.router.js";
+import cors from "cors"
 dotenv.config({
-    path: "./.env"
+    path: "./env"
 })
 
-
 const app = express()
+
+app.use(cors({
+    origin: process.env.CORS_ORIGIN,
+    credentials: true
+}))
+
+app.use(express.json());
+
+app.use("/api/v1/user", userRouter)
+//http://localhost:8000/api/v1/user/creatUser
 
 try {
     mongoose.connect(`${process.env.MONGODB_URL}/${DB_NAME}`);
@@ -25,7 +36,7 @@ try {
     
     const port = process.env.PORT
     
-    app.listen(port || 8000, "0.0.0.0", () => {
+    app.listen(port , "0.0.0.0", () => {
         console.log(`server start at port ${port}`)
     })
 } catch (error) {
