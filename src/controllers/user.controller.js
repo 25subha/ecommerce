@@ -91,34 +91,34 @@ const loginUser = async (req, res) => {
 
    }
  }
-const changedPassword = async (req, res) => {
-    try {
-        const {email, oldPassword, newPassword } = req.body;
+// const changedPassword = async (req, res) => {
+//     try {
+//         const {email, oldPassword, newPassword } = req.body;
 
-        if (!email || !oldPassword || !newPassword ) {
-           return res.status(400).json({message: "this fild are required: email, oldPassword, newPassword"})
-        }
+//         if (!email || !oldPassword || !newPassword ) {
+//            return res.status(400).json({message: "this fild are required: email, oldPassword, newPassword"})
+//         }
 
-        const user = await User.findOne({email});
-        if(!user) {
-           return res.status(404).json({message: "something went wrong while user is not found"})
-        }
+//         const user = await User.findOne({email});
+//         if(!user) {
+//            return res.status(404).json({message: "something went wrong while user is not found"})
+//         }
 
-        const ispasswordcorrect = await bcryptjs.compare(oldPassword, user.password);
+//         const ispasswordcorrect = await bcryptjs.compare(oldPassword, user.password);
 
-        if (!ispasswordcorrect) {
-           return res.status(400).json({message: "invalid old password", password:  user.password})
-        }
+//         if (!ispasswordcorrect) {
+//            return res.status(400).json({message: "invalid old password", password:  user.password})
+//         }
 
-         user.password = newPassword
+//          user.password = newPassword
 
-        await user.save({ validateBeforeSave: false })
-       return res.status(200).json({message: "password changed sucessfully"})
-    } catch (error) {
-       return res.status(500).json({message: error.message})
+//         await user.save({ validateBeforeSave: false })
+//        return res.status(200).json({message: "password changed sucessfully"})
+//     } catch (error) {
+//        return res.status(500).json({message: error.message})
 
-    }
-}
+//     }
+// }
 
 const updateUser = async(req, res) => {
    try {
@@ -129,17 +129,19 @@ const updateUser = async(req, res) => {
          console.log("all filds are required")
          return res.status(400).json({message: "all filds are required"})
      }
- 
-     const user = await User.findByIdAndUpdate(req.params?._id, {
-         userName,
-         email,
-         fullName,
-         _id:req.params._id
-     })
+     
+     let updateUserDetails =  {
+        userName,
+        email,
+        fullName,
+        _id: req.params._id
+     }
 
+     updateUserDetails = await User.findByIdAndUpdate(req.params?._id, updateUserDetails)
+    
      res.status(200)
      .json({
-        user: user,
+        user: updateUserDetails,
         message: "user details updated sucessfully"
      })
  
@@ -153,7 +155,7 @@ const updateUser = async(req, res) => {
 export{
     creatUser, 
     getAllUser,
-    changedPassword,
+    // changedPassword,
     updateUser,
     loginUser
 }
