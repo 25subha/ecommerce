@@ -1,33 +1,39 @@
-import { Product } from "../models/product.model";
+import { Product } from "../models/product.model.js";
 
 const createNewProduct = async( req, res ) => {
     try {
         const {title, description, price, imageUrl} = req.body;
-    
-        // if (!title || !description || !price || !imageUrl ) {
-        //     return res.status(400).json({message: "all filds are required"})
-        // }
-    
-        if( [title, description, price, imageUrl].some((fild) => {
-            !fild || fild?.trim() === ""
-        })) {
-            return res.status(400).json({message: "all filds are required"})
-        };
-    
-        const exisitedproduct = await Product.find({$or: 
-            [{title}, {description}]
-        })
-    
-        if(!exisitedproduct) {
-            res.status(400).json({message: "this product alredy existes"})
+
+        if(title === "") {
+            return res.status(400).json({message: "title is required"})
         }
+        if(description === "") {
+            return res.status(400).json({message: "description is required"})
+        }
+        if(isNaN(price) || price === "") {
+            return res.status(400).json({message: "price is required"})
+        }
+        if(imageUrl === "") {
+            return res.status(400).json({message: "imageUrl is required"})
+        }
+        
+        const existingProduct = await Product.findOne({$or: [{title}, {description}]})
+
+        if(existingProduct) {
+            if(existingProduct.title === title) {
+                return res.status(400).json({message: "this title alrady exists"})
+            }
+            if (existingProduct.description === description) {
+                return res.status(400).json({message: "this description alrady exists"})
+            }
+        }
+
         const product = await Product.create({
-            title: title,
-            description: description,
-            price: price,
-            imageUrl: imageUrl
+            title,
+            description,
+            price,
+            imageUrl
         })
-    
         return res.status(201).json({product: product,
             message: "product created sucessfully"
         })
@@ -50,12 +56,29 @@ const updateProductDetails = async(req,  res) => {
   try {
       const {title, description, price, imageUrl} = req.body
   
-      if ([title, description, price, imageUrl].some((filds) => {
+      if ([title, description, imageUrl].some((filds) => {
           !filds || filds?.trim() === ""
       })) {
           return res.status(400).json({message: "all filds are required"})
       };
-  
+      
+      if (isNaN(price) || price === "") {
+        return res.status(400).json({message: "price are required"})
+      }
+
+      const existingProduct = await Product.findOne({$or: [{title}, {description}]})
+
+      
+        if(existingProduct) {
+            if(existingProduct.title === title) {
+                return res.status(400).json({message: "this title alrady exists"})
+            }
+            if (existingProduct.description === description) {
+                return res.status(400).json({message: "this description alrady exists"})
+            }
+        }
+ 
+
       const updatedProduct = await Product.findByIdAndUpdate(req.params?._id, {
           title,
           description,

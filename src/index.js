@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { DB_NAME } from "./constants.js";
 import userRouter from "./routs/user.router.js";
 import cors from "cors"
+import productRouter from "./routs/product.router.js";
 dotenv.config({
     path: "./env"
 })
@@ -18,6 +19,8 @@ app.use(cors({
 app.use(express.json());
 
 app.use("/api/v1/user", userRouter)
+app.use("/api/v1/product", productRouter)
+
 //http://localhost:8000/api/v1/user/creatUser
 
 try {
